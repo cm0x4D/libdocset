@@ -22,7 +22,7 @@ public:
     std::string documentPath() const;
     std::string xmlDescription();
 
-    DocsetObjectList find(const std::string &what) const;
+    DocsetObjectList find(const std::string &what, bool sorted = true) const;
 
     DocsetObjectList objects(DocsetObject::Type type) const;
     inline DocsetObjectList operator [](DocsetObject::Type index) const {

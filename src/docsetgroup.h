@@ -31,7 +31,7 @@ public:
         return docset(index);
     }
 
-    DocsetObjectList find(const std::string &what) const;
+    DocsetObjectList find(const std::string &what, bool sorted = true) const;
 
     std::size_t loadToMemory() const;
     void unloadFromMemory() const;

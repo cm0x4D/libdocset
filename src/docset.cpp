@@ -105,7 +105,7 @@ string Docset::xmlDescription() {
         return "INVALID DOCSET";
 }
 
-DocsetObjectList Docset::find(const string &what) const {
+DocsetObjectList Docset::find(const string &what, bool sorted) const {
     DocsetObjectList objects;
 
     if (p && p->isValid()) {
@@ -123,6 +123,16 @@ DocsetObjectList Docset::find(const string &what) const {
             }
         }
     }
+
+    if (sorted)
+        objects.sort([&what](const DocsetObject &lo, const DocsetObject &ro) -> bool {
+            int li = lo.name().find(what);
+            int ri = ro.name().find(what);
+            if (li != string::npos && li != ri)
+                return ri == string::npos || li < ri;
+            else
+                return lo.name() < ro.name();
+        });
 
     return objects;
 }

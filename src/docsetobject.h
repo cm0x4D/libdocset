@@ -36,8 +36,6 @@ public:
 
     DocsetObject(): p(nullptr) {}
 
-    bool operator <(const DocsetObject &other) const;
-
     bool isValid() const;
     int id() const;
     std::string name() const;

@@ -106,12 +106,12 @@ Docset DocsetGroup::docset(int index) const {
         return Docset();
 }
 
-DocsetObjectList DocsetGroup::find(const std::string &what) const {
+DocsetObjectList DocsetGroup::find(const std::string &what, bool sorted) const {
     assert(p);
 
     list<future<list<DocsetObject>>> futures;
     for (auto &docset: p->docsets) {
-        futures.push_back(async(std::launch::async, bind(&Docset::find, &docset, what)));
+        futures.push_back(async(std::launch::async, bind(&Docset::find, &docset, what, false)));
     }
 
     list<DocsetObject> objects;
@@ -120,7 +120,15 @@ DocsetObjectList DocsetGroup::find(const std::string &what) const {
         move(result.begin(), result.end(), back_inserter(objects));
     }
 
-    objects.sort();
+    if (sorted)
+        objects.sort([&what](const DocsetObject &lo, const DocsetObject &ro) -> bool {
+            int li = lo.name().find(what);
+            int ri = ro.name().find(what);
+            if (li != string::npos && li != ri)
+                return ri == string::npos || li < ri;
+            else
+                return lo.name() < ro.name();
+        });
 
     return objects;
 }

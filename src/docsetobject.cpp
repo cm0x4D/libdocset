@@ -110,14 +110,6 @@ const pair<const char *const, const DocsetObject::Type> DocsetObject_Type_String
 DocsetObject::DocsetObject(DocsetObjectPrivate *p): p(p) {
 }
 
-bool DocsetObject::operator <(const DocsetObject &other) const {
-    if (p && other.p) {
-        return p->name < other.p->name;
-    } else {
-        return false;
-    }
-}
-
 bool DocsetObject::isValid() const {
     return p && !p->name.empty() && !p->url.empty() && !p->docset.expired();
 }
