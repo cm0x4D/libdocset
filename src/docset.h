@@ -10,6 +10,8 @@ class Docset {
     friend class DocsetObject;
 
 public:
+    Docset(): p(nullptr) {}
+
     inline bool operator ==(const Docset &other) const {
         return p == other.p;
     }
@@ -33,7 +35,7 @@ public:
     static Docset open(const std::string &path);
 
 private:
-    Docset(DocsetPrivate *p = nullptr);
+    Docset(DocsetPrivate *p);
     inline Docset(std::shared_ptr<DocsetPrivate> p): p(p) {}
     std::shared_ptr<DocsetPrivate> p;
 };
