@@ -24,7 +24,7 @@ You need a C++11 compliant compiler (GCC, clang), cmake, make or ninja and the S
 ```
 #!bash
 git clone https://cm0x4D@bitbucket.org/cm0x4D/libdocset.git
-# cd libdocset
+cd libdocset
 ```
 ```
 #!bash
