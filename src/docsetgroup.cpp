@@ -10,6 +10,7 @@
 #endif
 #include <algorithm>
 #include <iterator>
+#include <cstring>
 using std::list;
 using std::future;
 using std::async;
@@ -21,7 +22,7 @@ using std::back_inserter;
 
 struct DocsetGroupPrivate {
     list<Docset> docsets;
-    
+
 #   ifdef WINDOWS
     // TODO...
 #   else
@@ -104,6 +105,6 @@ DocsetObjectList DocsetGroup::find(const std::string &what, DocsetObject::Type t
 
 DocsetGroup DocsetGroup::open(const std::string folder, bool recursive) {
     DocsetGroup docsetGroup;
-    DocsetGroupPrivate::open(docsetGroup, folder, recursive);	
+    DocsetGroupPrivate::open(docsetGroup, folder, recursive);
     return docsetGroup;
 }
