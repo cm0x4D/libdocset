@@ -111,12 +111,14 @@ DocsetObjectList Docset::find(const string &what) const {
     if (p && p->isValid()) {
         if (p->inMemory) {
             for (auto &entry: p->objects)
-                for (auto &object: entry.second)
-                    if (search(object.name().cbegin(), object.name().cend(), what.cbegin(), what.cend(),
+                for (auto &object: entry.second) {
+                    std::string name(object.name());
+                    if (search(name.cbegin(), name.cend(), what.cbegin(), what.cend(),
                         [](const char &n, const char &w) -> bool {
                             return tolower(n) == tolower(w);
-                        }) != object.name().cend()) {
+                        }) != name.cend()) {
                         objects.push_back(object);
+                        }
                     }
         } else {
             p->find(what, objects);
