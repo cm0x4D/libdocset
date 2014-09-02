@@ -15,6 +15,7 @@ using std::ifstream;
 using std::copy;
 using std::search;
 using std::tolower;
+using std::size_t;
 
 class AppleFormat: public DocsetPrivate {
 public:
@@ -140,12 +141,15 @@ DocsetObjectList Docset::objects(DocsetObject::Type type) const {
         return DocsetObjectList();
 }
 
-void Docset::loadToMemory() const {
+size_t Docset::loadToMemory() const {
      if (p && p->isValid() && !p->inMemory) {
-         for (auto &object: find(""))
+         DocsetObjectList objects = find("");
+         for (auto &object: objects)
              p->objects[object.type()].push_back(object);
          p->inMemory = true;
+         return objects.size();
      }
+     return 0;
 }
 
 void Docset::unloadFromMemory() const {

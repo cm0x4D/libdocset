@@ -33,7 +33,7 @@ public:
 
     DocsetObjectList find(const std::string &what) const;
 
-    void loadToMemory() const;
+    std::size_t loadToMemory() const;
     void unloadFromMemory() const;
 
     static DocsetGroup open(const std::string folder, bool recursive = false);

@@ -27,7 +27,7 @@ public:
         return objects(index);
     }
 
-    void loadToMemory() const;
+    std::size_t loadToMemory() const;
     void unloadFromMemory() const;
 
     static Docset open(const std::string &path);

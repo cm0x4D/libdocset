@@ -19,6 +19,7 @@ using std::size_t;
 using std::string;
 using std::move;
 using std::back_inserter;
+using std::size_t;
 
 struct DocsetGroupPrivate {
     list<Docset> docsets;
@@ -124,15 +125,18 @@ DocsetObjectList DocsetGroup::find(const std::string &what) const {
     return objects;
 }
 
-void DocsetGroup::loadToMemory() const {
+std::size_t DocsetGroup::loadToMemory() const {
     assert(p);
 
-    list<future<void>> futures;
+    std::size_t count = 0;
+    list<future<size_t>> futures;
     for (auto &docset: p->docsets) {
         futures.push_back(async(std::launch::async, bind(&Docset::loadToMemory, &docset)));
     }
+    for (auto &f: futures)
+        count += f.get();
 
-    for (auto &f: futures) f.get();
+    return count;
 }
 
 void DocsetGroup::unloadFromMemory() const {
