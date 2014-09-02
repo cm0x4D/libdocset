@@ -36,10 +36,16 @@ public:
 
     bool operator <(const DocsetObject &other) const;
 
+    bool isValid() const;
     int id() const;
     std::string name() const;
     Type type() const;
+    inline std::string typeString() const {
+        return stringFromType(type());
+    }
     std::string url() const;
+
+    Docset docset() const;
 
     static Type typeFromString(const std::string type);
     static std::string stringFromType(Type type);

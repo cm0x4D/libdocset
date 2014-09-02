@@ -84,12 +84,33 @@ void DocsetGroup::remove(const Docset &docset) {
     p->docsets.remove(docset);
 }
 
-DocsetObjectList DocsetGroup::find(const std::string &what, DocsetObject::Type type) const {
+Docset DocsetGroup::docset(const std::string docsetName) const {
+    assert(p);
+    auto docset = std::find_if(p->docsets.cbegin(), p->docsets.cend(),
+                               [&](const Docset &docset){ return docset.name() == docsetName; });
+    if (docset != p->docsets.cend())
+        return *docset;
+    else
+        return Docset();
+
+}
+
+Docset DocsetGroup::docset(int index) const {
+    if (index < p->docsets.size()) {
+        auto docset = p->docsets.cbegin();
+        for (int i = 0; i < index; ++i)
+            ++docset;
+        return *docset;
+    } else
+        return Docset();
+}
+
+DocsetObjectList DocsetGroup::find(const std::string &what) const {
     assert(p);
 
     list<future<list<DocsetObject>>> futures;
     for (auto &docset: p->docsets) {
-        futures.push_back(async(std::launch::async, bind(&Docset::find, &docset, what, type)));
+        futures.push_back(async(std::launch::async, bind(&Docset::find, &docset, what)));
     }
 
     list<DocsetObject> objects;
@@ -101,6 +122,28 @@ DocsetObjectList DocsetGroup::find(const std::string &what, DocsetObject::Type t
     objects.sort();
 
     return objects;
+}
+
+void DocsetGroup::loadToMemory() const {
+    assert(p);
+
+    list<future<void>> futures;
+    for (auto &docset: p->docsets) {
+        futures.push_back(async(std::launch::async, bind(&Docset::loadToMemory, &docset)));
+    }
+
+    for (auto &f: futures) f.get();
+}
+
+void DocsetGroup::unloadFromMemory() const {
+    assert(p);
+
+    list<future<void>> futures;
+    for (auto &docset: p->docsets) {
+        futures.push_back(async(std::launch::async, bind(&Docset::unloadFromMemory, &docset)));
+    }
+
+    for (auto &f: futures) f.get();
 }
 
 DocsetGroup DocsetGroup::open(const std::string folder, bool recursive) {

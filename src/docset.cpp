@@ -5,41 +5,33 @@
 #include <functional>
 #include <algorithm>
 #include "docset_p.hpp"
+#include <fstream>
 using std::string;
 using std::list;
 using std::function;
 using std::pair;
 using std::find;
+using std::ifstream;
+using std::copy;
+using std::search;
+using std::tolower;
 
 class AppleFormat: public DocsetPrivate {
 public:
-    DocsetObjectList find(const string &what, DocsetObject::Type type) const override {
-        DocsetObjectList objects;
-
-        auto handler = [](void *data, int argc, char **argv, char **) -> int {
-            if (argc == 4) {
-                auto param = static_cast<pair<DocsetPrivate *, DocsetObjectList *> *>(data);
-
-                DocsetObjectPrivate *objectPriv = new DocsetObjectPrivate();
-                objectPriv->id = atoi(argv[0]);
-                objectPriv->name = argv[1];
-                objectPriv->type = DocsetObject::typeFromString(argv[2]);
-                objectPriv->url = param->first->path + "/Contents/Resources/Documents/" + argv[3];
-                param->second->push_back(param->first->createDocsetObject(objectPriv));
-            }
-            return 0;
-        };
-
+    void find(const string &what, DocsetObjectList &objects) const override {
         string query = "SELECT id, name, type, path FROM searchIndex where name Like '%";
         query += what + "%'";
 
-        if (type != DocsetObject::Type::All)
-            query += " AND type = '" + DocsetObject::stringFromType(type) + "'";
-
-        auto param = make_pair(this, &objects);
-        sqlite3_exec(index, query.c_str(), handler, &param, nullptr);
-
-        return objects;
+        sqlite3_exec(index, query.c_str(),
+            [](void *data, int argc, char **argv, char **) -> int {
+                DocsetObjectPrivate *object = new DocsetObjectPrivate();
+                object->id = atoi(argv[0]);
+                object->name = argv[1];
+                object->type = DocsetObject::typeFromString(argv[2]);
+                object->url = argv[3];
+                static_cast<DocsetObjectList *>(data)->push_back(DocsetPrivate::createDocsetObject(object));
+                return 0;
+            }, &objects, nullptr);
     }
 
     bool isValid() const {
@@ -50,23 +42,7 @@ public:
  };
 
 struct ZFormat: public DocsetPrivate {
-    DocsetObjectList find(const string &what, DocsetObject::Type type) const override {
-        DocsetObjectList objects;
-
-        auto handler = [](void *data, int argc, char **argv, char **) -> int {
-            if (argc == 4) {
-                auto param = static_cast<pair<DocsetPrivate *, DocsetObjectList *> *>(data);
-
-                DocsetObjectPrivate *objectPriv = new DocsetObjectPrivate();
-                objectPriv->id = atoi(argv[0]);
-                objectPriv->name = argv[1];
-                objectPriv->type = DocsetObject::typeFromString(argv[2]);
-                objectPriv->url = param->first->path + "/Contents/Resources/Documents/" + argv[3];
-                param->second->push_back(param->first->createDocsetObject(objectPriv));
-            }
-            return 0;
-        };
-
+    void find(const string &what, DocsetObjectList &objects) const override {
         string query = "SELECT ztoken.z_pk, ztokenname, ztypename, zpath FROM ztoken "
                        "JOIN ztokentype ON ztoken.ztokentype = ztokentype.z_pk "
                        "JOIN ztokenmetainformation ON ztoken.zmetainformation = ztokenmetainformation.z_pk "
@@ -74,13 +50,16 @@ struct ZFormat: public DocsetPrivate {
                        "WHERE ztokenname LIKE '%";
         query += what + "%'";
 
-        if (type != DocsetObject::Type::All)
-            query += " AND ztypename = '" + DocsetObject::stringFromType(type) + "'";
-
-        auto param = make_pair(this, &objects);
-        sqlite3_exec(index, query.c_str(), handler, &param, nullptr);
-
-        return objects;
+        sqlite3_exec(index, query.c_str(),
+            [](void *data, int argc, char **argv, char **) -> int {
+                DocsetObjectPrivate *object = new DocsetObjectPrivate();
+                object->id = atoi(argv[0]);
+                object->name = argv[1];
+                object->type = DocsetObject::typeFromString(argv[2]);
+                object->url = argv[3];
+                static_cast<DocsetObjectList *>(data)->push_back(DocsetPrivate::createDocsetObject(object));
+                return 0;
+            }, &objects, nullptr);
     }
 
     bool isValid() const {
@@ -88,7 +67,6 @@ struct ZFormat: public DocsetPrivate {
     }
 
     struct sqlite3 *index = nullptr;
-
 };
 
 bool Docset::operator <(const Docset &other) const {
@@ -116,14 +94,63 @@ string Docset::documentPath() const {
         return "INVALID DOCSET";
 }
 
-DocsetObjectList Docset::find(const string &what, DocsetObject::Type type) const {
+string Docset::xmlDescription() {
+    if (p) {
+        if (p->xmlDescription.empty()) {
+            ifstream info(p->path + "/Contents/Info.plist");
+            copy(std::istreambuf_iterator<char>(info), std::istreambuf_iterator<char>(), std::back_inserter(p->xmlDescription));
+        }
+        return p->xmlDescription;
+    } else
+        return "INVALID DOCSET";
+}
+
+DocsetObjectList Docset::find(const string &what) const {
     DocsetObjectList objects;
 
     if (p && p->isValid()) {
-        objects = p->find(what, type);
+        if (p->inMemory) {
+            for (auto &entry: p->objects)
+                for (auto &object: entry.second)
+                    if (search(object.name().cbegin(), object.name().cend(), what.cbegin(), what.cend(),
+                        [](const char &n, const char &w) -> bool {
+                            return tolower(n) == tolower(w);
+                        }) != object.name().cend()) {
+                        objects.push_back(object);
+                    }
+        } else {
+            p->find(what, objects);
+            for (auto object: objects) {
+                object.p->docset = p;
+            }
+        }
     }
 
     return objects;
+}
+
+DocsetObjectList Docset::objects(DocsetObject::Type type) const {
+    if (p && p->isValid()) {
+        if (!p->inMemory)
+            loadToMemory();
+        return p->objects[type];
+    } else
+        return DocsetObjectList();
+}
+
+void Docset::loadToMemory() const {
+     if (p && p->isValid() && !p->inMemory) {
+         for (auto &object: find(""))
+             p->objects[object.type()].push_back(object);
+         p->inMemory = true;
+     }
+}
+
+void Docset::unloadFromMemory() const {
+    if (p && p->isValid() && p->inMemory) {
+        p->objects.clear();
+        p->inMemory = false;
+    }
 }
 
 Docset Docset::open(const string &path) {

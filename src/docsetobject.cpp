@@ -113,6 +113,11 @@ bool DocsetObject::operator <(const DocsetObject &other) const {
     return p->name < other.p->name;
 }
 
+bool DocsetObject::isValid() const {
+    assert(p);
+    return !p->name.empty() && !p->url.empty() && !p->docset.expired();
+}
+
 int DocsetObject::id() const {
     assert(p);
     return p->id;
@@ -131,6 +136,14 @@ DocsetObject::Type DocsetObject::type() const {
 string DocsetObject::url() const {
     assert(p);
     return p->url;
+}
+
+Docset DocsetObject::docset() const {
+    assert(p);
+    if (p->docset.expired())
+        return Docset();
+    else
+        return Docset(p->docset.lock());
 }
 
 DocsetObject::Type DocsetObject::typeFromString(const std::string type) {
