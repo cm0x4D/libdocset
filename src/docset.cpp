@@ -113,11 +113,7 @@ DocsetObjectList Docset::find(const string &what) const {
         if (p->inMemory) {
             for (auto &entry: p->objects)
                 for (auto &object: entry.second) {
-                    std::string name(object.name());
-                    if (search(name.cbegin(), name.cend(), what.cbegin(), what.cend(),
-                        [](const char &n, const char &w) -> bool {
-                            return tolower(n) == tolower(w);
-                        }) != name.cend()) {
+                    if (object.containsInName(what)) {
                         objects.push_back(object);
                         }
                     }

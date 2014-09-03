@@ -138,6 +138,14 @@ string DocsetObject::url() const {
     return p->url;
 }
 
+bool DocsetObject::containsInName(const string &what) const {
+    assert(p);
+    return search(p->name.cbegin(), p->name.cend(), what.cbegin(), what.cend(),
+                            [](const char &n, const char &w) -> bool {
+                                return tolower(n) == tolower(w);
+                            }) != p->name.cend();
+}
+
 Docset DocsetObject::docset() const {
     assert(p);
     if (p->docset.expired())

@@ -47,6 +47,8 @@ public:
 
     Docset docset() const;
 
+    bool containsInName(const std::string &what) const;
+
     static Type typeFromString(const std::string type);
     static std::string stringFromType(Type type);
 
