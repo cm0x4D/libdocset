@@ -3,10 +3,12 @@
 #include <assert.h>
 #include <iostream>
 #include "docset.h"
+#include <algorithm>
 using std::string;
 using std::cout;
 using std::endl;
 using std::pair;
+using std::search;
 
 const char *const DocsetObject_Type_Strings[] = {
     "Unknown",

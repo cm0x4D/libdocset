@@ -13,7 +13,6 @@ using std::pair;
 using std::find;
 using std::ifstream;
 using std::copy;
-using std::search;
 using std::tolower;
 using std::size_t;
 

@@ -31,7 +31,7 @@ public:
         Shortcut,               Specialization,         Statement,                  Struct,
         Style,                  Subroutine,             Tag,                        Test,
         Trait,                  Type,                   Typedef,                    Union,
-        Value,                  Variable,               Word
+        Value,                  Variable,               Word,                       TypeEnd
     };
 
     bool operator <(const DocsetObject &other) const;
