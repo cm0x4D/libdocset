@@ -34,7 +34,7 @@ public:
         Value,                  Variable,               Word,                       TypeEnd
     };
 
-    DocsetObject(): p(nullptr) {} // TODO: Make invalid object save to use...
+    DocsetObject(): p(nullptr) {}
 
     bool operator <(const DocsetObject &other) const;
 

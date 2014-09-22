@@ -9,6 +9,7 @@ using std::cout;
 using std::endl;
 using std::pair;
 using std::search;
+using std::shared_ptr;
 
 const char *const DocsetObject_Type_Strings[] = {
     "Unknown",
@@ -110,47 +111,63 @@ DocsetObject::DocsetObject(DocsetObjectPrivate *p): p(p) {
 }
 
 bool DocsetObject::operator <(const DocsetObject &other) const {
-    assert(p);
-    assert(other.p);
-    return p->name < other.p->name;
+    if (p && other.p) {
+        return p->name < other.p->name;
+    } else {
+        return false;
+    }
 }
 
 bool DocsetObject::isValid() const {
-    assert(p);
-    return !p->name.empty() && !p->url.empty() && !p->docset.expired();
+    return p && !p->name.empty() && !p->url.empty() && !p->docset.expired();
 }
 
 int DocsetObject::id() const {
-    assert(p);
-    return p->id;
+    if (p) {
+        return p->id;
+    } else {
+        return -1;
+    }
 }
 
 string DocsetObject::name() const {
-    assert(p);
-    return p->name;
+    if (p) {
+        return p->name;
+    } else {
+        return "INVALID OBJECT";
+    }
 }
 
 DocsetObject::Type DocsetObject::type() const {
-    assert(p);
-    return p->type;
+    if (p) {
+        return p->type;
+    } else {
+        return Type::Unknown;
+    }
 }
 
 string DocsetObject::url() const {
-    assert(p);
-    return p->url;
+    if (p) {
+        if (!p->docset.expired()) {
+            Docset d(p->docset.lock());
+            return string("file://") + d.documentPath() + p->url;
+        } else {
+            return "INVALID DOCSET";
+        }
+    } else {
+        return "INVALID OBJECT";
+    }
 }
 
 bool DocsetObject::containsInName(const string &what) const {
-    assert(p);
-    return search(p->name.cbegin(), p->name.cend(), what.cbegin(), what.cend(),
-                            [](const char &n, const char &w) -> bool {
-                                return tolower(n) == tolower(w);
-                            }) != p->name.cend();
+    return p && search(p->name.cbegin(), p->name.cend(), what.cbegin(), what.cend(),
+                       [](const char &n, const char &w) -> bool {
+                           return tolower(n) == tolower(w);
+                       }) != p->name.cend();
 }
 
 Docset DocsetObject::docset() const {
-    assert(p);
-    if (p->docset.expired())
+    if (!p || p->docset.expired())
         return Docset();
     else
         return Docset(p->docset.lock());
