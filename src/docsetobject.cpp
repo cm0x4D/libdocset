@@ -151,11 +151,16 @@ string DocsetObject::url() const {
     }
 }
 
-bool DocsetObject::containsInName(const string &what) const {
-    return p && search(p->name.cbegin(), p->name.cend(), what.cbegin(), what.cend(),
+int DocsetObject::positionInName(const string &what) const {
+    if (!p) return -1;
+    auto it = search(p->name.cbegin(), p->name.cend(), what.cbegin(), what.cend(),
                        [](const char &n, const char &w) -> bool {
                            return tolower(n) == tolower(w);
-                       }) != p->name.cend();
+                       });
+    if (it != p->name.cend())
+        return it - p->name.cbegin();
+    else
+        return -1;
 }
 
 Docset DocsetObject::docset() const {

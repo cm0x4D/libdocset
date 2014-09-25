@@ -43,7 +43,7 @@ public:
 
 struct ZFormat: public DocsetPrivate {
     void find(const string &what, DocsetObjectList &objects) const override {
-        string query = "SELECT ztoken.z_pk, ztokenname, ztypename, zpath FROM ztoken "
+        string query = "SELECT ztoken.z_pk, ztokenname, ztypename, zpath, zanchor FROM ztoken "
                        "JOIN ztokentype ON ztoken.ztokentype = ztokentype.z_pk "
                        "JOIN ztokenmetainformation ON ztoken.zmetainformation = ztokenmetainformation.z_pk "
                        "JOIN zfilepath ON ztokenmetainformation.zfile = zfilepath.z_pk "
@@ -57,6 +57,10 @@ struct ZFormat: public DocsetPrivate {
                 object->name = argv[1];
                 object->type = DocsetObject::typeFromString(argv[2]);
                 object->url = argv[3];
+                if (argc >= 5 && argv[4]) {
+                    object->url += '#';
+                    object->url += argv[4];
+                }
                 static_cast<DocsetObjectList *>(data)->push_back(DocsetPrivate::createDocsetObject(object));
                 return 0;
             }, &objects, nullptr);
@@ -126,12 +130,13 @@ DocsetObjectList Docset::find(const string &what, bool sorted) const {
 
     if (sorted)
         objects.sort([&what](const DocsetObject &lo, const DocsetObject &ro) -> bool {
-            int li = lo.name().find(what);
-            int ri = ro.name().find(what);
-            if (li != string::npos && li != ri)
-                return ri == string::npos || li < ri;
+            // TODO: Refactor to another method, ignore case and prefer objects followed by a whitespace.
+            int li = lo.positionInName(what);
+            int ri = ro.positionInName(what);
+            if (li != -1)
+                return ri == -1 || li < ri;
             else
-                return lo.name() < ro.name();
+                return ri != -1 && lo.name() < ro.name();
         });
 
     return objects;

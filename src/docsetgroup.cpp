@@ -122,12 +122,13 @@ DocsetObjectList DocsetGroup::find(const std::string &what, bool sorted) const {
 
     if (sorted)
         objects.sort([&what](const DocsetObject &lo, const DocsetObject &ro) -> bool {
-            int li = lo.name().find(what);
-            int ri = ro.name().find(what);
-            if (li != string::npos && li != ri)
-                return ri == string::npos || li < ri;
+            // TODO: Refactor to another method, ignore case and prefer objects followed by a whitespace.
+            int li = lo.positionInName(what);
+            int ri = ro.positionInName(what);
+            if (li != -1)
+                return ri == -1 || li < ri;
             else
-                return lo.name() < ro.name();
+                return ri != -1 && lo.name() < ro.name();
         });
 
     return objects;
