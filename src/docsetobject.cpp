@@ -151,6 +151,14 @@ string DocsetObject::url() const {
     }
 }
 
+bool DocsetObject::operator <(const DocsetObject &other) const {
+    if (p && other.p) {
+        return p->name < other.p->name;
+    } else {
+        return p != nullptr;
+    }
+}
+
 int DocsetObject::positionInName(const string &what) const {
     if (!p) return -1;
     auto it = search(p->name.cbegin(), p->name.cend(), what.cbegin(), what.cend(),
@@ -161,6 +169,14 @@ int DocsetObject::positionInName(const string &what) const {
         return it - p->name.cbegin();
     else
         return -1;
+}
+
+bool DocsetObject::wordEndsWith(const std::string &what, int indexHint) const
+{
+    if (indexHint == -1) {
+        indexHint = positionInName(what);
+    }
+    return p && p->name.length() <= indexHint + what.length() || p->name.at(indexHint + what.length()) == ' ';
 }
 
 Docset DocsetObject::docset() const {

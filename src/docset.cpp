@@ -6,6 +6,7 @@
 #include <algorithm>
 #include "docset_p.hpp"
 #include <fstream>
+#include "docsetsort.hpp"
 using std::string;
 using std::list;
 using std::function;
@@ -102,7 +103,8 @@ string Docset::xmlDescription() {
     if (p) {
         if (p->xmlDescription.empty()) {
             ifstream info(p->path + "/Contents/Info.plist");
-            copy(std::istreambuf_iterator<char>(info), std::istreambuf_iterator<char>(), std::back_inserter(p->xmlDescription));
+            copy(std::istreambuf_iterator<char>(info), std::istreambuf_iterator<char>(),
+                 std::back_inserter(p->xmlDescription));
         }
         return p->xmlDescription;
     } else
@@ -129,15 +131,7 @@ DocsetObjectList Docset::find(const string &what, bool sorted) const {
     }
 
     if (sorted)
-        objects.sort([&what](const DocsetObject &lo, const DocsetObject &ro) -> bool {
-            // TODO: Refactor to another method, ignore case and prefer objects followed by a whitespace.
-            int li = lo.positionInName(what);
-            int ri = ro.positionInName(what);
-            if (li != -1)
-                return ri == -1 || li < ri;
-            else
-                return ri != -1 && lo.name() < ro.name();
-        });
+        objects.sort(DocsetIntelligentSort(what));
 
     return objects;
 }
@@ -178,7 +172,7 @@ Docset Docset::open(const string &path) {
         return Docset();
     }
 
-    // Determine the version by getting the list of all tables and instanciate the right implementation.
+    // Determine the version by getting the list of all tables and instanciate the correct implementation.
     list<string> tables;
     DocsetPrivate *p;
     sqlite3_exec(index, "SELECT name FROM sqlite_master WHERE type='table'",

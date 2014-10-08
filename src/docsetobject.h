@@ -47,10 +47,12 @@ public:
 
     Docset docset() const;
 
+    bool operator <(const DocsetObject &other) const;
     int positionInName(const std::string &what) const;
     inline bool containsInName(const std::string &what) const {
         return positionInName(what) != -1;
     }
+    bool wordEndsWith(const std::string &what, int indexHint = -1) const;
 
     static Type typeFromString(const std::string type);
     static std::string stringFromType(Type type);

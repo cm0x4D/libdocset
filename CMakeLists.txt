@@ -11,7 +11,8 @@ set(HEADERS src/Docset
             src/libdocset.h
             src/LibDocset)
 set(PRIVATE_HEADERS src/docset_p.hpp
-                    src/docsetobject_p.hpp)
+                    src/docsetobject_p.hpp
+                    src/docsetsort.hpp)
 set(SOURCES src/docset.cpp
             src/docsetobject.cpp
             src/docsetgroup.cpp)

@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <iterator>
 #include <cstring>
+#include "docsetsort.hpp"
 using std::list;
 using std::future;
 using std::async;
@@ -111,25 +112,22 @@ DocsetObjectList DocsetGroup::find(const std::string &what, bool sorted) const {
 
     list<future<list<DocsetObject>>> futures;
     for (auto &docset: p->docsets) {
-        futures.push_back(async(std::launch::async, bind(&Docset::find, &docset, what, false)));
+        futures.push_back(async(std::launch::async, bind(&Docset::find, &docset, what, sorted)));
     }
 
     list<DocsetObject> objects;
-    for (auto &f: futures) {
-        auto result = f.get();
-        move(result.begin(), result.end(), back_inserter(objects));
-    }
 
-    if (sorted)
-        objects.sort([&what](const DocsetObject &lo, const DocsetObject &ro) -> bool {
-            // TODO: Refactor to another method, ignore case and prefer objects followed by a whitespace.
-            int li = lo.positionInName(what);
-            int ri = ro.positionInName(what);
-            if (li != -1)
-                return ri == -1 || li < ri;
-            else
-                return ri != -1 && lo.name() < ro.name();
-        });
+    if (sorted) {
+        for (auto &f: futures) {
+            auto result = f.get();
+            objects.merge(move(result), DocsetIntelligentSort(what));
+        }
+    } else {
+        for (auto &f: futures) {
+            auto result = f.get();
+            move(result.begin(), result.end(), back_inserter(objects));
+        }
+    }
 
     return objects;
 }
