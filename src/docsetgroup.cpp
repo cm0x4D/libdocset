@@ -112,21 +112,18 @@ DocsetObjectList DocsetGroup::find(const std::string &what, bool sorted) const {
 
     list<future<list<DocsetObject>>> futures;
     for (auto &docset: p->docsets) {
-        futures.push_back(async(std::launch::async, bind(&Docset::find, &docset, what, sorted)));
+        futures.push_back(async(std::launch::async, bind(&Docset::find, &docset, what, false)));
     }
 
     list<DocsetObject> objects;
 
+    for (auto &f: futures) {
+        auto result = f.get();
+        move(result.begin(), result.end(), back_inserter(objects));
+    }
+
     if (sorted) {
-        for (auto &f: futures) {
-            auto result = f.get();
-            objects.merge(move(result), DocsetIntelligentSort(what));
-        }
-    } else {
-        for (auto &f: futures) {
-            auto result = f.get();
-            move(result.begin(), result.end(), back_inserter(objects));
-        }
+        objects.sort(DocsetIntelligentSort(what));
     }
 
     return objects;

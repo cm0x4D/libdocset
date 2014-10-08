@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
     int elapsedMs = chrono::duration_cast<chrono::milliseconds>(end - start).count();
     cout << count << " objects loaded in " << elapsedMs << " ms." << endl;
     start = chrono::system_clock::now();
-    DocsetObjectList obs = docsets.find(argv[2]);
+    DocsetObjectList obs = docsets.find(argv[2], true);
     end = chrono::system_clock::now();
     elapsedMs = chrono::duration_cast<chrono::milliseconds>(end - start).count();
     for (auto o: obs)

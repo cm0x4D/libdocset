@@ -176,7 +176,7 @@ bool DocsetObject::wordEndsWith(const std::string &what, int indexHint) const
     if (indexHint == -1) {
         indexHint = positionInName(what);
     }
-    return p && p->name.length() <= indexHint + what.length() || p->name.at(indexHint + what.length()) == ' ';
+    return p && (p->name.length() <= indexHint + what.length() || p->name.at(indexHint + what.length()) == ' ');
 }
 
 Docset DocsetObject::docset() const {
