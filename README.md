@@ -12,7 +12,7 @@ for (auto o: obs)
     std::cout << o.name() << "\n";
 ```
 
-Currently the library runs on Linux and OS X, Windows support is planned, but not yet implemented.
+Currently the library runs on Linux and OS X.
 
 ### How do I get set up? ###
 
@@ -20,13 +20,13 @@ You need a C++11 compliant compiler (GCC, clang), cmake, make or ninja and the S
 
 - Clone or Download the code:
 ```bash
-git clone https://cm0x4D@bitbucket.org/cm0x4D/libdocset.git
+git clone https://github.com/cm0x4D/libdocset.git
 cd libdocset
 ```
 ```bash
-wget https://bitbucket.org/cm0x4D/libdocset/get/dcf5e98ed785.zip
-unzip dcf5e98ed785.zip
-cd cm0x4D-libdocset-dcf5e98ed785
+wget https://github.com/cm0x4D/libdocset/archive/master.zip
+unzip libdocset-master.zip
+cd libdocset-master
 ```
 
 - Build the library using cmake and make:
@@ -41,7 +41,7 @@ make
 mkdir build
 cd build
 cmake -G Ninja -D CMAKE_BUILD_TYPE=Release ..
-make
+ninja
 ```
 
 - (Optional) Install the library:
